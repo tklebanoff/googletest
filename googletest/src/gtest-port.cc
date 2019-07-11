@@ -117,7 +117,7 @@ T ReadProcFileField(const std::string& filename, int field) {
 size_t GetThreadCount() {
   const std::string filename =
       (Message() << "/proc/" << getpid() << "/stat").GetString();
-  return ReadProcFileField<int>(filename, 19);
+  return ReadProcFileField<size_t>(filename, 19);
 }
 
 #elif GTEST_OS_MAC
@@ -175,7 +175,7 @@ size_t GetThreadCount() {
   if (sysctl(mib, miblen, &info, &size, NULL, 0)) {
     return 0;
   }
-  return KP_NLWP(info);
+  return static_cast<size_t>(KP_NLWP(info));
 }
 #elif GTEST_OS_OPENBSD
 
@@ -279,7 +279,7 @@ size_t GetThreadCount() {
 #if GTEST_IS_THREADSAFE && GTEST_OS_WINDOWS
 
 void SleepMilliseconds(int n) {
-  ::Sleep(n);
+  ::Sleep(static_cast<DWORD>(n));
 }
 
 AutoHandle::AutoHandle()
@@ -1113,6 +1113,11 @@ class CapturedStream {
     char name_template[] = "/tmp/captured_stream.XXXXXX";
 #  endif  // GTEST_OS_LINUX_ANDROID
     const int captured_fd = mkstemp(name_template);
+    if (captured_fd == -1) {
+      GTEST_LOG_(WARNING)
+          << "Failed to create tmp file " << name_template
+          << " for test; does the test have access to the /tmp directory?";
+    }
     filename_ = name_template;
 # endif  // GTEST_OS_WINDOWS
     fflush(nullptr);
@@ -1134,6 +1139,10 @@ class CapturedStream {
     }
 
     FILE* const file = posix::FOpen(filename_.c_str(), "r");
+    if (file == nullptr) {
+      GTEST_LOG_(FATAL) << "Failed to open tmp file " << filename_
+                        << " for capturing stream.";
+    }
     const std::string content = ReadEntireFile(file);
     posix::FClose(file);
     return content;
@@ -1246,13 +1255,6 @@ void SetInjectableArgvs(const std::vector<std::string>& new_argvs) {
   SetInjectableArgvs(
       new std::vector<std::string>(new_argvs.begin(), new_argvs.end()));
 }
-
-#if GTEST_HAS_GLOBAL_STRING
-void SetInjectableArgvs(const std::vector< ::string>& new_argvs) {
-  SetInjectableArgvs(
-      new std::vector<std::string>(new_argvs.begin(), new_argvs.end()));
-}
-#endif  // GTEST_HAS_GLOBAL_STRING
 
 void ClearInjectableArgvs() {
   delete g_injected_test_argvs;

@@ -1,4 +1,6 @@
+## Google Mock Cookbook
 
+<!-- GOOGLETEST_CM0011 DO NOT DELETE -->
 
 You can find recipes for using Google Mock here. If you haven't yet,
 please read the [ForDummies](ForDummies.md) document first to make sure you understand
@@ -70,7 +72,7 @@ class Foo {
 class MockFoo : public Foo {
   ...
   MOCK_METHOD1(Add, int(Element x));
-  MOCK_METHOD2(Add, int(int times, Element x);
+  MOCK_METHOD2(Add, int(int times, Element x));
 
   MOCK_METHOD0(GetBar, Bar&());
   MOCK_CONST_METHOD0(GetBar, const Bar&());
@@ -227,7 +229,7 @@ If a mock method has no `EXPECT_CALL` spec but is called, Google Mock
 will print a warning about the "uninteresting call". The rationale is:
 
   * New methods may be added to an interface after a test is written. We shouldn't fail a test just because a method it doesn't know about is called.
-  * However, this may also mean there's a bug in the test, so Google Mock shouldn't be silent either. If the user believes these calls are harmless, they can add an `EXPECT_CALL()` to suppress the warning.
+  * However, this may also mean there's a bug in the test, so Google Mock shouldn't be silent either. (Note that the user should [*not* add an `EXPECT_CALL()`](https://github.com/google/googletest/blob/master/googlemock/docs/CookBook.md#knowing-when-to-expect) to suppress the warning, even if they think the call is harmless).
 
 However, sometimes you may want to suppress all "uninteresting call"
 warnings, while sometimes you may want the opposite, i.e. to treat all
@@ -2820,9 +2822,7 @@ and you should see an `OUTPUT_DIR` directory being created with files
 `gtest/gtest.h`, `gmock/gmock.h`, and `gmock-gtest-all.cc` in it.
 These three files contain everything you need to use Google Mock (and
 Google Test).  Just copy them to anywhere you want and you are ready
-to write tests and use mocks.  You can use the
-[make/Makefile](../make/Makefile) file as an example on how to compile your tests
-against them.
+to write tests and use mocks.
 
 # Extending Google Mock #
 
